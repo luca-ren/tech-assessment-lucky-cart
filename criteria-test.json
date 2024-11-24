@@ -1,10 +1,13 @@
 {
   "shopperId": "shopper-id",
   "totalAti": {
-    "gt": 50
+    "and": {
+      "gt": 99.7,
+      "lte": 99.8
+    }
   },
   "products.productId": {
-    "in": ["5449000054227"]
+    "in": ["544900005422", "3099873045369"]
   },
   "date": {
     "and": {
