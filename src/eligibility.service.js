@@ -31,15 +31,11 @@ class EligibilityService {
     const [criteriaKey, subCriteriaKey] = criteriaName.split(".");
     if (subCriteriaKey) {
       return cart[criteriaKey].some((cartElement) => {
-        return criteriaValue.some(
-          (criteriaElement) => criteriaElement == cartElement[subCriteriaKey]
-        );
+        return criteriaValue.includes(cartElement[subCriteriaKey]);
       });
     }
 
-    return criteriaValue.some(
-      (criteriaElement) => criteriaElement == cart[criteriaKey]
-    );
+    return criteriaValue.includes(cart[criteriaKey]);
   }
 
   isCriteriaWithPotentialOperatorEligible(cart, criteriaName, criteriaValue) {
@@ -86,6 +82,23 @@ class EligibilityService {
     return comparator(value, criteria[conditionName]);
   }
 
+  isCriteriaEligible(cart, criteriaName, criteriaValue) {
+    const [criteriaKey, subCriteriaKey] = criteriaName.split(".");
+    if (!cart[criteriaKey]) return false;
+
+    if (subCriteriaKey) {
+      if (Array.isArray(cart[criteriaKey])) {
+        return cart[criteriaKey]
+          .map((subObj) => subObj[subCriteriaKey])
+          .includes(criteriaValue);
+      }
+
+      return cart[criteriaKey][subCriteriaKey] == criteriaValue;
+    }
+
+    return cart[criteriaKey] == criteriaValue;
+  }
+
   isEligible(cart, criteria) {
     const criteriaArray = Object.entries(criteria);
     return criteriaArray.every(([criteriaName, criteriaValue]) => {
@@ -96,7 +109,7 @@ class EligibilityService {
           criteriaValue
         );
       } else {
-        return criteriaValue == cart[criteriaName];
+        return this.isCriteriaEligible(cart, criteriaName, criteriaValue);
       }
     });
   }
