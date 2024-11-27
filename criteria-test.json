@@ -1,8 +1,12 @@
 {
+  "cartId": "cart-id",
   "shopperId": "shopper-id",
+  "promoCode": {
+    "in": ["voucher-12312", "voucher-42"]
+  },
   "totalAti": {
     "and": {
-      "gt": 99.7,
+      "gte": 99.7,
       "lte": 99.8
     }
   },

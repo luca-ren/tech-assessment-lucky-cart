@@ -27,51 +27,36 @@ class EligibilityService {
    * @return {boolean}
    */
 
-  isShopperIdEligible(shopperId, criteria) {
-    if (!criteria.shopperId) return true;
-
-    if (shopperId == criteria.shopperId) {
-      return true;
+  checkInCriteria(cart, criteriaName, criteriaValue) {
+    const [criteriaKey, subCriteriaKey] = criteriaName.split(".");
+    if (subCriteriaKey) {
+      return cart[criteriaKey].some((cartElement) => {
+        return criteriaValue.some(
+          (criteriaElement) => criteriaElement == cartElement[subCriteriaKey]
+        );
+      });
     }
-    return false;
-  }
 
-  isTotalAtiEligible(totalAti, criteria) {
-    if (!criteria.totalAti) return true;
-    const criteriaTotalAti = criteria.totalAti;
-
-    return this.isCriteriaWithPotentialOperatorEligible(
-      totalAti,
-      criteriaTotalAti
+    return criteriaValue.some(
+      (criteriaElement) => criteriaElement == cart[criteriaKey]
     );
   }
 
-  isDateEligible(cartDate, criteria) {
-    if (!criteria.date) return true;
+  isCriteriaWithPotentialOperatorEligible(cart, criteriaName, criteriaValue) {
+    const subCriteriaKey = Object.keys(criteriaValue)[0];
+    const subCriteriaValue = Object.values(criteriaValue)[0];
 
-    const criteriaDate = criteria.date;
-
-    return this.isCriteriaWithPotentialOperatorEligible(cartDate, criteriaDate);
-  }
-
-  isProductsEligible(products, criteria) {
-    if (!criteria["products.productId"]) return true;
-
-    return products.some((product) => {
-      return criteria["products.productId"].in.some(
-        (element) => element == product.productId
+    if (subCriteriaKey === "in") {
+      return this.checkInCriteria(cart, criteriaName, subCriteriaValue);
+    } else if (typeof subCriteriaValue === "object") {
+      const operator = subCriteriaKey;
+      return this.checkAndOrCriteria(
+        cart[criteriaName],
+        subCriteriaValue,
+        operator
       );
-    });
-  }
-
-  isCriteriaWithPotentialOperatorEligible(value, criteria) {
-    if (typeof criteria === "object") {
-      if (typeof Object.values(criteria)[0] === "object") {
-        const operator = Object.keys(criteria)[0];
-        return this.checkAndOrCriteria(value, criteria[operator], operator);
-      }
-      return this.checkIsCriteria(value, criteria);
-    } else return criteria == value;
+    }
+    return this.checkIsCriteria(cart[criteriaName], criteriaValue);
   }
 
   checkAndOrCriteria(value, criterias, operator) {
@@ -102,15 +87,18 @@ class EligibilityService {
   }
 
   isEligible(cart, criteria) {
-    let cartIsEligible = true;
-
-    cartIsEligible =
-      this.isTotalAtiEligible(cart.totalAti, criteria) &&
-      this.isShopperIdEligible(cart.shopperId, criteria) &&
-      this.isProductsEligible(cart.products, criteria) &&
-      this.isDateEligible(cart.date, criteria);
-
-    return cartIsEligible;
+    const criteriaArray = Object.entries(criteria);
+    return criteriaArray.every(([criteriaName, criteriaValue]) => {
+      if (typeof criteriaValue === "object") {
+        return this.isCriteriaWithPotentialOperatorEligible(
+          cart,
+          criteriaName,
+          criteriaValue
+        );
+      } else {
+        return criteriaValue == cart[criteriaName];
+      }
+    });
   }
 }
 
