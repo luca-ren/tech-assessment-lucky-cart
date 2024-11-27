@@ -59,13 +59,13 @@ class EligibilityService {
     return this.checkIsCriteria(cart[criteriaName], criteriaValue);
   }
 
-  checkAndOrCriteria(value, criterias, operator) {
+  checkAndOrCriteria(value, criteria, operator) {
     const method = conditionOperatorToMethod[operator];
     if (!method) {
       throw new Error(`Operator inconnu : ${operator}`);
     }
 
-    return Object.entries(criterias)[method](([curCondName, curCondVal]) => {
+    return Object.entries(criteria)[method](([curCondName, curCondVal]) => {
       const comparator = conditionNameToFunc[curCondName];
       if (!comparator) {
         throw new Error(`Condition inconnue : ${curCondName}`);
